@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Menu, ConfigProvider, Input, Button, Layout } from "antd";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 const { Search } = Input;
 const { Header, Footer, Content } = Layout;
 const items = [
@@ -22,6 +22,8 @@ const items = [
   },
 ];
 
+
+
 const DefaultLayout = () => {
   const [current, setCurrent] = useState("mail");
   const onClick = (e) => {
@@ -29,6 +31,12 @@ const DefaultLayout = () => {
     setCurrent(e.key);
   };
   const onSearch = (value) => console.log(value);
+  const navigate = useNavigate();
+  const logOut = () => {
+    localStorage.clear();
+    navigate("/login");
+  }
+   
   return (
     <>
       <ConfigProvider
@@ -45,7 +53,6 @@ const DefaultLayout = () => {
       >
         <Header>
           <div className="header header_navbar">
-          
             <svg
               width="169"
               height="44"
@@ -86,15 +93,35 @@ const DefaultLayout = () => {
                   margin: 15,
                 }}
               />
-            
-            <Button
-              type="primary"
-              style={{
-                margin: 15,
-              }}
-            >
-              <h4><a href="./login">SIGN IN</a></h4>
-            </Button>{" "}
+
+              {localStorage.getItem("token") ? (
+                <>
+                  <Button
+                  type="primary"
+                  style={{
+                    margin: 15,
+                  }}
+                  onClick={logOut}
+                >
+                  <h4>
+                    LOG OUT
+                  </h4>
+                  <label>Welcome <span className="text-yellow">{localStorage.getItem("fullName")}</span></label>
+
+                </Button>
+                </>
+              ) : (
+                <Button
+                  type="primary"
+                  style={{
+                    margin: 15,
+                  }}
+                >
+                  <h4>
+                    <a href="./login">SIGN IN</a>
+                  </h4>
+                </Button>
+              )}
             </div>
           </div>
         </Header>

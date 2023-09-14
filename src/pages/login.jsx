@@ -54,6 +54,31 @@ function Login() {
       });
   };
 
+  const inputRefFullname = useRef(null);
+  const inputRefEmail = useRef(null);
+  const inputRefUsernameSU = useRef(null);
+  const inputRefPasswordSU = useRef(null);
+  const inputRefAvatar = useRef(null);
+  const inputRefBirthday = useRef(null);
+
+  const handleSignUp = async (event) => {
+    event.preventDefault();
+    const dataPost = {
+      fullname: inputRefFullname.current.value,
+      email: inputRefEmail.current.value,
+      username: inputRefUsernameSU.current.value,
+      password: inputRefPasswordSU.current.value,
+      avatar: inputRefAvatar.current.value,
+      dateOfBirth: inputRefBirthday.current.value
+    }
+    await axios.post("http://localhost:8080/api/v1/account/create", dataPost)
+    .then(navigate("/login"))
+    .catch((error) => {
+      // Handle login error (e.g., display error message)
+      console.error("Login failed");
+      console.error(error);
+    });
+  }
   return (
     <>
       <div className="container">
@@ -91,28 +116,72 @@ function Login() {
           <form onSubmit={(e) => handleSignUp(e)} className="box">
             <h1 className="text-white m-5">Sign Up For Free</h1>
             <div>
-              <label htmlFor="username" className="text-white m-5">Username:</label>
+              <label htmlFor="fulname" className="text-white m-5">Fullname:</label>
               <input
                 type="text"
-                id="username"
-                name="username"
-                ref={inputRefUsername}
+                id="fullname"
+                name="fullname"
+                ref={inputRefFullname}
                 className="m-5"
                
               />
             </div>
             <div>
-              <label htmlFor="password" className="text-white m-5">Password:</label>
+              <label htmlFor="username" className="text-white m-5">Email:</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                ref={inputRefEmail}
+                className="m-5"
+               
+              />
+            </div>
+            <div>
+              <label htmlFor="username-su" className="text-white m-5">Username:</label>
+              <input
+                type="text"
+                id="username-su"
+                name="username-su"
+                ref={inputRefUsernameSU}
+                className="m-5"
+               
+              />
+            </div>
+            <div>
+              <label htmlFor="password-su" className="text-white m-5">Password:</label>
               <input
                 type="password"
-                id="password"
-                name="password"
-                ref={inputRefPassword}
+                id="password-su"
+                name="password-su"
+                ref={inputRefPasswordSU}
                 className="m-5"
             
               />
             </div>
-            <button type="submit" className="btn m-5">Login</button>
+            <div>
+              <label htmlFor="avatar" className="text-white m-5">Avatar:</label>
+              <input
+                type="url"
+                id="avatar"
+                name="avatar"
+                ref={inputRefAvatar}
+                className="m-5"
+               
+              />
+            </div>
+            <div>
+              <label htmlFor="birthday" className="text-white m-5">Birthday:</label>
+              <input
+                type="date"
+                id="birthday"
+                name="birthday"
+                ref={inputRefBirthday}
+                className="m-5"
+               
+              />
+            </div>
+            <button type="submit" className="btn m-5">Sign Up</button>
           </form>
         )}
       </div>

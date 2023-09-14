@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { CalendarOutlined, StarOutlined } from "@ant-design/icons";
-import { Button, Pagination } from "antd";
+import { Button, Pagination, Modal } from "antd";
 import axios, { isCancel, AxiosError } from "axios";
 import { Card, List } from "antd";
 
 const Home = () => {
   const [data, setData] = useState([]);
+  const [openEdit, setOpenEdit] = useState(false);
 
   useEffect(() => {
     listFilm();
@@ -139,6 +140,9 @@ const Home = () => {
                       <data>{item.rating}</data>
                     </div>
                   </div>
+                  {localStorage.getItem("role") == "ADMIN" ? (<><Button  onClick={() => setOpenEdit(true)}>Edit</Button>
+                  <Button>Edit</Button></>):("")}
+                  
                 </div>
               </List.Item>
             )}
@@ -148,6 +152,18 @@ const Home = () => {
           <Pagination defaultCurrent={1} total={50} />
         </div>
       </section>
+      <Modal
+        title="Modal 1000px width"
+        centered
+        open={openEdit}
+        onOk={() => setOpenEdit(false)}
+        onCancel={() => setOpenEdit(false)}
+        width={1000}
+      >
+        <p>some contents...</p>
+        <p>some contents...</p>
+        <p>some contents...</p>
+      </Modal>
     </>
   );
 };
