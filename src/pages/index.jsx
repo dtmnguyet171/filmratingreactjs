@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { CalendarOutlined, StarOutlined } from "@ant-design/icons";
 import { Button, Pagination, Modal } from "antd";
 import axios, { isCancel, AxiosError } from "axios";
 import { Card, List } from "antd";
+import { useNavigate, NavLink } from "react-router-dom";
 
 const Home = () => {
   const [data, setData] = useState([]);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openAdd, setOpenAdd] = useState(false);
 
+  const navigate = useNavigate();
   useEffect(() => {
     listFilm();
   }, []);
 
+  const [filmInfo, setFilmInfo] = useState(null);
   const listFilm = () => {
     const data = axios
       .get("http://localhost:8080/api/v1/film/get-all")
@@ -23,6 +28,80 @@ const Home = () => {
 
     return () => data;
   };
+
+  const handleShowModalEdit = (item) => {
+    setOpenEdit(true);
+    setFilmInfo(item);
+    console.log(item);
+  };
+
+  const handleShowModalDelete = (item) => {
+    setOpenDelete(true);
+    setFilmInfo(item);
+  };
+
+  const handleShowModalAdd = () => {
+    setOpenAdd(true);
+  };
+
+  const handleOk = async () => {
+    await axios
+      .delete(`http://localhost:8080/api/v1/film/${filmInfo.id}`, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      })
+      .then(setOpenDelete(false))
+      .then(window.location.reload());
+  };
+
+  const handleCancel = () => {
+    setOpenDelete(false);
+  };
+
+  const inputRefTitle = useRef(null);
+  const inputRefYear = useRef(0);
+  const inputRefDescription = useRef(null);
+  const inputRefImage = useRef(null);
+  const inputRefGenre = useRef(null);
+
+  const handleSubmitEdit = async () => {
+    const dataPost = {
+      id: filmInfo.id,
+      title: inputRefTitle.current.value,
+      genre: inputRefGenre.current.value,
+      image: inputRefImage.current.value,
+      year: inputRefYear.current.value,
+      description: inputRefDescription.current.value,
+    };
+    console.log(dataPost);
+    await axios
+      .put("http://localhost:8080/api/v1/film/update", dataPost, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      })
+      .then(setOpenEdit(false))
+      .then(window.location.reload());
+    return;
+  };
+
+  const handleSubmitAdd = async () => {
+      const dataPost = {
+      title: inputRefTitle.current.value,
+      genre: inputRefGenre.current.value,
+      image: inputRefImage.current.value,
+      year: inputRefYear.current.value,
+      description: inputRefDescription.current.value,
+    };
+    await axios.post("http://localhost:8080/api/v1/film/create", dataPost, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    })
+    .then(setOpenAdd(false))
+    .then(window.location.reload())
+  }
 
   return (
     <>
@@ -65,6 +144,7 @@ const Home = () => {
         <div className="container">
           <p className="section-subtitle">Rating & Review</p>
           <h2 className="h2 section-title">Film List</h2>
+          <Button style={{float: "right"}} onClick={() => handleShowModalAdd()}>Add Film</Button>
           <ul className="filter-list">
             <li>
               <div className="dropdown">
@@ -87,6 +167,7 @@ const Home = () => {
                 </div>
               </div>
             </li>
+            
             <li>
               <div className="dropdown">
                 <Button>Rating</Button>
@@ -107,6 +188,7 @@ const Home = () => {
             </li>
           </ul>
           <br></br>
+
           <List
             grid={{
               gutter: 16,
@@ -119,7 +201,10 @@ const Home = () => {
             }}
             dataSource={data}
             renderItem={(item) => (
-              <List.Item>
+              <List.Item
+                      
+                  >
+                    <NavLink to={`film/${item.id}`}>
                 <div className="movie-card">
                   <figure className="card-banner">
                     <img src={item.image} alt="The Northman movie poster" />
@@ -140,10 +225,20 @@ const Home = () => {
                       <data>{item.rating}</data>
                     </div>
                   </div>
-                  {localStorage.getItem("role") == "ADMIN" ? (<><Button  onClick={() => setOpenEdit(true)}>Edit</Button>
-                  <Button>Edit</Button></>):("")}
-                  
+                  {localStorage.getItem("role") == "ADMIN" ? (
+                    <>
+                      <Button onClick={() => handleShowModalEdit(item)}>
+                        Edit
+                      </Button>
+                      <Button onClick={() => handleShowModalDelete(item)}>
+                        Delete
+                      </Button>
+                    </>
+                  ) : (
+                    ""
+                  )}
                 </div>
+                </NavLink>
               </List.Item>
             )}
           ></List>
@@ -153,16 +248,122 @@ const Home = () => {
         </div>
       </section>
       <Modal
-        title="Modal 1000px width"
+        title="Edit Film"
         centered
         open={openEdit}
-        onOk={() => setOpenEdit(false)}
-        onCancel={() => setOpenEdit(false)}
+        onOk={() => handleSubmitEdit()}
+        onCancel={() => {
+          setOpenEdit(false);
+        }}
         width={1000}
       >
-        <p>some contents...</p>
-        <p>some contents...</p>
-        <p>some contents...</p>
+        <label for="title">Title</label>
+        <input
+          type="text"
+          id="title"
+          defaultValue={filmInfo?.title}
+          ref={inputRefTitle}
+        />
+
+        <label>Genre</label>
+        <select
+          id="genre"
+          style={{ backgroundColor: "white" }}
+          defaultValue={filmInfo?.genre}
+          ref={inputRefGenre}
+        >
+          <option>ACTION</option>
+          <option>ADVENTURE</option>
+          <option>COMEDY</option>
+          <option>DRAMA</option>
+        </select>
+        <label>Image</label>
+        <input
+          type="text"
+          placeholder="Enter image link..."
+          id="image"
+          defaultValue={filmInfo?.image}
+          ref={inputRefImage}
+        ></input>
+        <label>Year</label>
+        <input
+          type="number"
+          placeholder="Enter year..."
+          id="year"
+          defaultValue={filmInfo?.year}
+          ref={inputRefYear}
+        />
+        <label>Description</label>
+        <textarea
+          type="text"
+          placeholder="Enter film Description..."
+          id="description"
+          defaultValue={filmInfo?.description}
+          style={{ width: "80vw" }}
+          ref={inputRefDescription}
+        ></textarea>
+      </Modal>
+      <Modal
+        title="Delete Confirm"
+        open={openDelete}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <p>Are you sure to delete this film?</p>
+      </Modal>
+      <Modal
+        title="Add new Film"
+        centered
+        open={openAdd}
+        onOk={() => handleSubmitAdd()}
+        onCancel={() => {
+          setOpenAdd(false);
+        }}
+        width={1000}
+      >
+        <label for="title">Title</label>
+        <input
+          type="text"
+          id="title"
+          ref={inputRefTitle}
+        />
+
+        <label>Genre</label>
+        <select
+          id="genre"
+          style={{ backgroundColor: "white" }}
+
+          ref={inputRefGenre}
+        >
+          <option>ACTION</option>
+          <option>ADVENTURE</option>
+          <option>COMEDY</option>
+          <option>DRAMA</option>
+        </select>
+        <label>Image</label>
+        <input
+          type="text"
+          placeholder="Enter image link..."
+          id="image"
+
+          ref={inputRefImage}
+        ></input>
+        <label>Year</label>
+        <input
+          type="number"
+          placeholder="Enter year..."
+          id="year"
+
+          ref={inputRefYear}
+        />
+        <label>Description</label>
+        <textarea
+          type="text"
+          placeholder="Enter film Description..."
+          id="description"
+          style={{ width: "80vw" }}
+          ref={inputRefDescription}
+        ></textarea>
       </Modal>
     </>
   );
